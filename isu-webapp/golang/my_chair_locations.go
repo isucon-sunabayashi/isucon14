@@ -3,11 +3,20 @@ package main
 import (
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"log/slog"
+	"math"
+	"time"
 )
 
+type ChairLocationDistanceSumInfo struct {
+	ChairID                string
+	TotalDistance          int
+	TotalDistanceUpdatedAt time.Time
+}
+
 var (
-	chairLocationCacheById      = cmap.New[*ChairLocation]()
-	chairLocationCacheByChairId = cmap.New[*ChairLocation]()
+	chairLocationCacheById                     = cmap.New[*ChairLocation]()
+	chairLocationDistanceSumInfoCacheByChairId = cmap.New[ChairLocationDistanceSumInfo]()
+	chairLocationsCacheByChairId               = cmap.New[[]*ChairLocation]()
 )
 
 // Initialize関数に記載
@@ -17,21 +26,78 @@ var (
 // 初期値: 2109件
 func initializeChairLocationCache() {
 	var chairLocations []*ChairLocation
-	if err := db.Select(&chairLocations, "SELECT * FROM chair_locations;"); err != nil {
+	if err := db.Select(&chairLocations, "SELECT * FROM chair_locations ORDER BY created_at ASC;"); err != nil {
 		slog.Error("chair_location一覧取得に失敗", err)
 		return
 	}
 	chairLocationCacheById.Clear()
-	chairLocationCacheByChairId.Clear()
+	chairLocationDistanceSumInfoCacheByChairId.Clear()
+	chairLocationsCacheByChairId.Clear()
+
 	for _, chairLocation := range chairLocations {
-		setChairLocationCache(chairLocation)
+		setChairLocationCacheForInitialize(chairLocation)
+	}
+
+	for _, list := range chairLocationsCacheByChairId.Items() {
+		updateChairLocationDistanceSumInfoByChairId(list)
 	}
 }
 
 // キャッシュする
+func setChairLocationCacheForInitialize(chairLocation *ChairLocation) {
+	chairLocationCacheById.Set(chairLocation.ID, chairLocation)
+	if list := getChairLocationsByChairId(chairLocation.ChairID); list == nil {
+		list = []*ChairLocation{}
+		list = append(list, chairLocation)
+		chairLocationsCacheByChairId.Set(chairLocation.ChairID, list)
+	} else {
+		list = append(list, chairLocation)
+		chairLocationsCacheByChairId.Set(chairLocation.ChairID, list)
+	}
+}
+
 func setChairLocationCache(chairLocation *ChairLocation) {
 	chairLocationCacheById.Set(chairLocation.ID, chairLocation)
-	chairLocationCacheByChairId.Set(chairLocation.ChairID, chairLocation)
+	if list := getChairLocationsByChairId(chairLocation.ChairID); list == nil {
+		list = []*ChairLocation{}
+		list = append(list, chairLocation)
+		chairLocationsCacheByChairId.Set(chairLocation.ChairID, list)
+		updateChairLocationDistanceSumInfoByChairId(list)
+	} else {
+		list = append(list, chairLocation)
+		chairLocationsCacheByChairId.Set(chairLocation.ChairID, list)
+		updateChairLocationDistanceSumInfoByChairId(list)
+	}
+}
+
+// LEFT JOIN (SELECT chair_id,
+//
+//	       SUM(IFNULL(distance, 0)) AS total_distance,
+//	       MAX(created_at)          AS total_distance_updated_at
+//	FROM (SELECT chair_id,
+//	             created_at,
+//	             ABS(latitude - LAG(latitude) OVER (PARTITION BY chair_id ORDER BY created_at)) +
+//	             ABS(longitude - LAG(longitude) OVER (PARTITION BY chair_id ORDER BY created_at)) AS distance
+//	      FROM chair_locations) tmp
+//	GROUP BY chair_id) distance_table ON distance_table.chair_id = chairs.id
+func updateChairLocationDistanceSumInfoByChairId(list []*ChairLocation) {
+	var chairLocationDistanceSumInfo ChairLocationDistanceSumInfo
+	var prev *ChairLocation
+	for i, current := range list {
+		if i == 0 {
+			chairLocationDistanceSumInfo = ChairLocationDistanceSumInfo{
+				ChairID:                (*current).ChairID,
+				TotalDistance:          0,
+				TotalDistanceUpdatedAt: (*current).CreatedAt,
+			}
+			prev = current
+			continue
+		}
+		distance := math.Abs(float64((*current).Latitude-(*prev).Latitude)) + math.Abs(float64((*current).Longitude-(*prev).Longitude))
+		chairLocationDistanceSumInfo.TotalDistance += int(distance)
+		chairLocationDistanceSumInfo.TotalDistanceUpdatedAt = current.CreatedAt
+	}
+	chairLocationDistanceSumInfoCacheByChairId.Set(chairLocationDistanceSumInfo.ChairID, chairLocationDistanceSumInfo)
 }
 
 // キャッシュから取得
@@ -44,9 +110,18 @@ func getChairLocationById(id string) *ChairLocation {
 }
 
 // キャッシュから取得
-func getChairLocationByChairId(chairId string) *ChairLocation {
-	if chairLocation, ok := chairLocationCacheByChairId.Get(chairId); ok {
-		return chairLocation
+func getLatestChairLocationByChairId(chairId string) *ChairLocation {
+	if chairLocations, ok := chairLocationsCacheByChairId.Get(chairId); ok {
+		return chairLocations[len(chairLocations)-1]
+	} else {
+		return nil
+	}
+}
+
+// キャッシュから取得
+func getChairLocationsByChairId(chairId string) []*ChairLocation {
+	if chairLocations, ok := chairLocationsCacheByChairId.Get(chairId); ok {
+		return chairLocations
 	} else {
 		return nil
 	}
