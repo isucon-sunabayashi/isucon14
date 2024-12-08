@@ -5,6 +5,7 @@ import (
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"log/slog"
 	"math"
+	"strings"
 )
 
 type ChairLocationDistanceSumInfo struct {
@@ -45,27 +46,29 @@ func initializeChairLocationCache() {
 
 // キャッシュする
 func setChairLocationCacheForInitialize(chairLocation *ChairLocation) {
-	chairLocationCacheById.Set(chairLocation.ID, chairLocation)
-	if list := getChairLocationsByChairId(chairLocation.ChairID); list == nil {
+	chairLocationCacheById.Set(strings.ToUpper(chairLocation.ID), chairLocation)
+
+	if list := getChairLocationsByChairId(strings.ToUpper(chairLocation.ChairID)); list == nil {
 		list = []*ChairLocation{}
 		list = append(list, chairLocation)
-		chairLocationsCacheByChairId.Set(chairLocation.ChairID, list)
+		chairLocationsCacheByChairId.Set(strings.ToUpper(chairLocation.ChairID), list)
 	} else {
 		list = append(list, chairLocation)
-		chairLocationsCacheByChairId.Set(chairLocation.ChairID, list)
+		chairLocationsCacheByChairId.Set(strings.ToUpper(chairLocation.ChairID), list)
 	}
 }
 
 func setChairLocationCache(chairLocation *ChairLocation) {
-	chairLocationCacheById.Set(chairLocation.ID, chairLocation)
-	if list := getChairLocationsByChairId(chairLocation.ChairID); list == nil {
+	chairLocationCacheById.Set(strings.ToUpper(chairLocation.ID), chairLocation)
+
+	if list := getChairLocationsByChairId(strings.ToUpper(chairLocation.ChairID)); list == nil {
 		list = []*ChairLocation{}
 		list = append(list, chairLocation)
-		chairLocationsCacheByChairId.Set(chairLocation.ChairID, list)
+		chairLocationsCacheByChairId.Set(strings.ToUpper(chairLocation.ChairID), list)
 		updateChairLocationDistanceSumInfoByChairId(list)
 	} else {
 		list = append(list, chairLocation)
-		chairLocationsCacheByChairId.Set(chairLocation.ChairID, list)
+		chairLocationsCacheByChairId.Set(strings.ToUpper(chairLocation.ChairID), list)
 		updateChairLocationDistanceSumInfoByChairId(list)
 	}
 }
@@ -102,12 +105,12 @@ func updateChairLocationDistanceSumInfoByChairId(list []*ChairLocation) {
 			Valid: true,
 		}
 	}
-	chairLocationDistanceSumInfoCacheByChairId.Set(chairLocationDistanceSumInfo.ChairID, chairLocationDistanceSumInfo)
+	chairLocationDistanceSumInfoCacheByChairId.Set(strings.ToUpper(chairLocationDistanceSumInfo.ChairID), chairLocationDistanceSumInfo)
 }
 
 // キャッシュから取得
 func getChairLocationById(id string) *ChairLocation {
-	if chairLocation, ok := chairLocationCacheById.Get(id); ok {
+	if chairLocation, ok := chairLocationCacheById.Get(strings.ToUpper(id)); ok {
 		return chairLocation
 	} else {
 		return nil
@@ -116,7 +119,7 @@ func getChairLocationById(id string) *ChairLocation {
 
 // キャッシュから取得
 func getLatestChairLocationByChairId(chairId string) *ChairLocation {
-	if chairLocations, ok := chairLocationsCacheByChairId.Get(chairId); ok {
+	if chairLocations, ok := chairLocationsCacheByChairId.Get(strings.ToUpper(chairId)); ok {
 		return chairLocations[len(chairLocations)-1]
 	} else {
 		return nil
@@ -125,7 +128,7 @@ func getLatestChairLocationByChairId(chairId string) *ChairLocation {
 
 // キャッシュから取得
 func getChairLocationsByChairId(chairId string) []*ChairLocation {
-	if chairLocations, ok := chairLocationsCacheByChairId.Get(chairId); ok {
+	if chairLocations, ok := chairLocationsCacheByChairId.Get(strings.ToUpper(chairId)); ok {
 		return chairLocations
 	} else {
 		return nil
@@ -133,7 +136,7 @@ func getChairLocationsByChairId(chairId string) []*ChairLocation {
 }
 
 func getChairLocationDistanceSumInfoCacheByChairId(chairId string) ChairLocationDistanceSumInfo {
-	if chairLocationDistanceSumInfo, ok := chairLocationDistanceSumInfoCacheByChairId.Get(chairId); ok {
+	if chairLocationDistanceSumInfo, ok := chairLocationDistanceSumInfoCacheByChairId.Get(strings.ToUpper(chairId)); ok {
 		return chairLocationDistanceSumInfo
 	} else {
 		slog.Error("----------想定外")
