@@ -1,0 +1,5 @@
+#
+# cloudformation.yml はいつでもignore
+#
+cloudformation.yml
+tmp/analysis/
