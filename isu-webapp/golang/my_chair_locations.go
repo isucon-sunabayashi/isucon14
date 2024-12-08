@@ -136,6 +136,8 @@ func getChairLocationDistanceSumInfoCacheByChairId(chairId string) ChairLocation
 	if chairLocationDistanceSumInfo, ok := chairLocationDistanceSumInfoCacheByChairId.Get(chairId); ok {
 		return chairLocationDistanceSumInfo
 	} else {
+		slog.Error("----------想定外")
+		panic(chairId)
 		return ChairLocationDistanceSumInfo{
 			ChairID:       "誤り",
 			TotalDistance: -1,
