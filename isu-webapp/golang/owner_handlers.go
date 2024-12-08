@@ -198,8 +198,7 @@ func ownerGetChairs(w http.ResponseWriter, r *http.Request) {
 
 	chairs := []chairWithDetail{}
 	tmpChairs := []Chair{}
-	if err := db.SelectContext(ctx, &tmpChairs, `SELECT id,
-*
+	if err := db.SelectContext(ctx, &tmpChairs, `SELECT *
 FROM chairs
 WHERE owner_id = ?
 `, owner.ID); err != nil {
