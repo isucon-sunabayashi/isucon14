@@ -138,6 +138,9 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// ChairLocationをキャッシュ
+	initializeChairLocationCache()
+
 	writeJSON(w, http.StatusOK, postInitializeResponse{Language: "go"})
 }
 
