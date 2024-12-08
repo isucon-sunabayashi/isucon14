@@ -1,0 +1,11 @@
+DB	TABLE_NAME
+isuride	chair_locations
+isuride	chair_models
+isuride	chairs
+isuride	coupons
+isuride	owners
+isuride	payment_tokens
+isuride	ride_statuses
+isuride	rides
+isuride	settings
+isuride	users
