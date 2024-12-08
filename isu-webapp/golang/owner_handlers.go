@@ -234,18 +234,15 @@ WHERE owner_id = ?
 			RegisteredAt:  chair.CreatedAt.UnixMilli(),
 			TotalDistance: chair.TotalDistance,
 		}
-		if chair.ID == "01JDFNB5Q8RC3MDGXVSTTPG5Z5" {
-			fmt.Printf("----------\n")
-			fmt.Printf("debug: %+v\n", chair)
-			fmt.Printf("----------\n")
-			fmt.Printf("debug2: %+v\n", c)
-			fmt.Printf("----------\n")
-		}
 		if chair.TotalDistanceUpdatedAt.Valid {
 			t := chair.TotalDistanceUpdatedAt.Time.UnixMilli()
 			c.TotalDistanceUpdatedAt = &t
 		}
 		res.Chairs = append(res.Chairs, c)
 	}
+
+	fmt.Printf("----------\n")
+	fmt.Printf("debug: %+v\n", res)
+	fmt.Printf("----------\n")
 	writeJSON(w, http.StatusOK, res)
 }
