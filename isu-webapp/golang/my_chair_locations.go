@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"log/slog"
 	"math"
@@ -100,29 +99,30 @@ func updateChairLocationDistanceSumInfoByChairId(list []*ChairLocation) {
 			continue
 		}
 		distance := math.Abs(float64((*current).Latitude-(*prev).Latitude)) + math.Abs(float64((*current).Longitude-(*prev).Longitude))
-		if chairLocationDistanceSumInfo.ChairID == "01JDFFT9J8JVCFVJAG4WN2B666" {
-			fmt.Println("-----------")
-			fmt.Printf("%v: %f, %f, %f, %f = %d\n",
-				(*current).CreatedAt,
-				float64((*current).Latitude),
-				float64((*prev).Latitude),
-				float64((*current).Longitude),
-				float64((*prev).Longitude),
-				int(distance),
-			)
-			fmt.Println("-----------")
-		}
+		// if chairLocationDistanceSumInfo.ChairID == "01JDFFT9J8JVCFVJAG4WN2B666" {
+		// 	fmt.Println("-----------")
+		// 	fmt.Printf("%v: %f, %f, %f, %f = %d\n",
+		// 		(*current).CreatedAt,
+		// 		float64((*current).Latitude),
+		// 		float64((*prev).Latitude),
+		// 		float64((*current).Longitude),
+		// 		float64((*prev).Longitude),
+		// 		int(distance),
+		// 	)
+		// 	fmt.Println("-----------")
+		// }
 		chairLocationDistanceSumInfo.TotalDistance += int(distance)
 		chairLocationDistanceSumInfo.TotalDistanceUpdatedAt = sql.NullTime{
 			Time:  (*current).CreatedAt,
 			Valid: true,
 		}
+		prev = current
 	}
-	if chairLocationDistanceSumInfo.ChairID == "01JDFFT9J8JVCFVJAG4WN2B666" {
-		fmt.Println("-----------")
-		fmt.Printf("debug: %+v\n", chairLocationDistanceSumInfo)
-		fmt.Println("-----------")
-	}
+	// if chairLocationDistanceSumInfo.ChairID == "01JDFFT9J8JVCFVJAG4WN2B666" {
+	// 	fmt.Println("-----------")
+	// 	fmt.Printf("debug: %+v\n", chairLocationDistanceSumInfo)
+	// 	fmt.Println("-----------")
+	// }
 	chairLocationDistanceSumInfoCacheByChairId.Set(strings.ToUpper(chairLocationDistanceSumInfo.ChairID), chairLocationDistanceSumInfo)
 }
 
