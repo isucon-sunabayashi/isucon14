@@ -1,16 +1,16 @@
 package main
 
 import (
+	"database/sql"
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"log/slog"
 	"math"
-	"time"
 )
 
 type ChairLocationDistanceSumInfo struct {
 	ChairID                string
 	TotalDistance          int
-	TotalDistanceUpdatedAt time.Time
+	TotalDistanceUpdatedAt sql.NullTime
 }
 
 var (
@@ -86,16 +86,21 @@ func updateChairLocationDistanceSumInfoByChairId(list []*ChairLocation) {
 	for i, current := range list {
 		if i == 0 {
 			chairLocationDistanceSumInfo = ChairLocationDistanceSumInfo{
-				ChairID:                (*current).ChairID,
-				TotalDistance:          0,
-				TotalDistanceUpdatedAt: (*current).CreatedAt,
+				ChairID:       (*current).ChairID,
+				TotalDistance: 0,
+				TotalDistanceUpdatedAt: sql.NullTime{
+					Valid: false,
+				},
 			}
 			prev = current
 			continue
 		}
 		distance := math.Abs(float64((*current).Latitude-(*prev).Latitude)) + math.Abs(float64((*current).Longitude-(*prev).Longitude))
 		chairLocationDistanceSumInfo.TotalDistance += int(distance)
-		chairLocationDistanceSumInfo.TotalDistanceUpdatedAt = current.CreatedAt
+		chairLocationDistanceSumInfo.TotalDistanceUpdatedAt = sql.NullTime{
+			Time:  (*current).CreatedAt,
+			Valid: true,
+		}
 	}
 	chairLocationDistanceSumInfoCacheByChairId.Set(chairLocationDistanceSumInfo.ChairID, chairLocationDistanceSumInfo)
 }
@@ -124,5 +129,19 @@ func getChairLocationsByChairId(chairId string) []*ChairLocation {
 		return chairLocations
 	} else {
 		return nil
+	}
+}
+
+func getChairLocationDistanceSumInfoCacheByChairId(chairId string) ChairLocationDistanceSumInfo {
+	if chairLocationDistanceSumInfo, ok := chairLocationDistanceSumInfoCacheByChairId.Get(chairId); ok {
+		return chairLocationDistanceSumInfo
+	} else {
+		return ChairLocationDistanceSumInfo{
+			ChairID:       "誤り",
+			TotalDistance: -1,
+			TotalDistanceUpdatedAt: sql.NullTime{
+				Valid: false,
+			},
+		}
 	}
 }
