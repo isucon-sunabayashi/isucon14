@@ -86,6 +86,8 @@ func updateRideStatusCacheChairSentAtById(id string, chairSentAt *time.Time) {
 }
 
 // yetSentRideStatus
+//
+//	if err := tx.GetContext(ctx, &yetSentRideStatus, `SELECT * FROM ride_statuses WHERE ride_id = ? AND chair_sent_at IS NULL ORDER BY created_at ASC LIMIT 1`, ride.ID); err != nil {
 func getYetSentRideStatus(rideId string) *RideStatus {
 	if rideStatuses := getRideStatusesByRideId(rideId); rideStatuses != nil {
 		for _, rideStatus := range rideStatuses {
