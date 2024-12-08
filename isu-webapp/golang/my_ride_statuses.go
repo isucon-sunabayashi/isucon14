@@ -52,6 +52,14 @@ func getRideStatusesByRideId(rideId string) []*RideStatus {
 	}
 }
 
+func getRideStatusByRideId(rideId string) *RideStatus {
+	if rideStatuses := getRideStatusesByRideId(rideId); rideStatuses != nil {
+		return rideStatuses[len(rideStatuses)-1]
+	} else {
+		return nil
+	}
+}
+
 // キャッシュから取得
 func getRideStatusById(id string) *RideStatus {
 	if rideStatus, ok := rideStatusCacheById.Get(strings.ToUpper(id)); ok {
