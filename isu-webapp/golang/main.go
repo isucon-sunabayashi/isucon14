@@ -142,6 +142,8 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 
 	// ChairLocationをキャッシュ
 	initializeChairLocationCache()
+	// RideStatusをキャッシュ
+	initializeRideStatusCache()
 
 	writeJSON(w, http.StatusOK, postInitializeResponse{Language: "go"})
 }

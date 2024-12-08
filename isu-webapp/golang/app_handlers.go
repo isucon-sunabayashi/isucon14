@@ -346,14 +346,21 @@ func appPostRides(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rideStatus := &RideStatus{
+		ID:        ulid.Make().String(),
+		RideID:    rideID,
+		Status:    "MATCHING",
+		CreatedAt: time.Now(),
+	}
 	if _, err := tx.ExecContext(
 		ctx,
-		`INSERT INTO ride_statuses (id, ride_id, status) VALUES (?, ?, ?)`,
-		ulid.Make().String(), rideID, "MATCHING",
+		`INSERT INTO ride_statuses (id, ride_id, status, createdAt) VALUES (?, ?, ?, ?)`,
+		(*rideStatus).ID, rideID, (*rideStatus).Status, (*rideStatus).CreatedAt,
 	); err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return
 	}
+	setRideStatusCacheById(rideStatus)
 
 	var rideCount int
 	if err := tx.GetContext(ctx, &rideCount, `SELECT COUNT(*) FROM rides WHERE user_id = ? `, user.ID); err != nil {
@@ -562,14 +569,22 @@ func appPostRideEvaluatation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rideStatus := &RideStatus{
+		ID:        ulid.Make().String(),
+		RideID:    rideID,
+		Status:    "COMPLETED",
+		CreatedAt: time.Now(),
+	}
 	_, err = tx.ExecContext(
 		ctx,
-		`INSERT INTO ride_statuses (id, ride_id, status) VALUES (?, ?, ?)`,
-		ulid.Make().String(), rideID, "COMPLETED")
+		`INSERT INTO ride_statuses (id, ride_id, status, createdAt) VALUES (?, ?, ?, ?)`,
+		(*rideStatus).ID, rideID, (*rideStatus).Status, (*rideStatus).CreatedAt,
+	)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return
 	}
+	setRideStatusCacheById(rideStatus)
 
 	if err := tx.GetContext(ctx, ride, `SELECT * FROM rides WHERE id = ?`, rideID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -744,13 +759,15 @@ func appGetNotification(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	appSentAt := time.Now()
 	if yetSentRideStatus.ID != "" {
-		_, err := tx.ExecContext(ctx, `UPDATE ride_statuses SET app_sent_at = CURRENT_TIMESTAMP(6) WHERE id = ?`, yetSentRideStatus.ID)
+		_, err := tx.ExecContext(ctx, `UPDATE ride_statuses SET app_sent_at = ? WHERE id = ?`, appSentAt, yetSentRideStatus.ID)
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, err)
 			return
 		}
 	}
+	updateRideStatusCacheAppSentAtById(yetSentRideStatus.ID, &appSentAt)
 
 	if err := tx.Commit(); err != nil {
 		writeError(w, http.StatusInternalServerError, err)
