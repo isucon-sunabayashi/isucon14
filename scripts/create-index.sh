@@ -22,8 +22,8 @@ while read server; do
   # CREATE Index
   #
   # コピペ時: ここから
-  index_name='idx_chair_locations_chair_id_created_at'
-  sql="create index ${index_name} on chair_locations(chair_id, created_at);"
+  index_name='idx_chair_locations_latitude_longitude'
+  sql="create index ${index_name} on chair_locations(latitude, longitude);"
   echo "${sql}"
   ssh -n ${server} "sudo mysql ${DB_NAME} -e '${sql}'" || echo "index: ${index_name}は既に有るので問題なし(Duplicate key nameならば)"
   echo ''
