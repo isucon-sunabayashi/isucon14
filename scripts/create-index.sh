@@ -29,6 +29,30 @@ while read server; do
   echo ''
   # コピペ時: ここまで
 
+  # コピペ時: ここから
+  index_name='idx_ride_statuses_ride_id_created_at'
+  sql="create index ${index_name} on ride_statuses(ride_id, created_at);"
+  echo "${sql}"
+  ssh -n ${server} "sudo mysql ${DB_NAME} -e '${sql}'" || echo "index: ${index_name}は既に有るので問題なし(Duplicate key nameならば)"
+  echo ''
+  # コピペ時: ここまで
+
+  # コピペ時: ここから
+  index_name='idx_ride_statuses_ride_id_chair_sent_at_created_at'
+  sql="create index ${index_name} on ride_statuses(ride_id, chair_sent_at, created_at);"
+  echo "${sql}"
+  ssh -n ${server} "sudo mysql ${DB_NAME} -e '${sql}'" || echo "index: ${index_name}は既に有るので問題なし(Duplicate key nameならば)"
+  echo ''
+  # コピペ時: ここまで
+
+  # コピペ時: ここから
+  index_name='idx_ride_statuses_ride_id_app_sent_at_created_at'
+  sql="create index ${index_name} on ride_statuses(ride_id, app_sent_at, created_at);"
+  echo "${sql}"
+  ssh -n ${server} "sudo mysql ${DB_NAME} -e '${sql}'" || echo "index: ${index_name}は既に有るので問題なし(Duplicate key nameならば)"
+  echo ''
+  # コピペ時: ここまで
+
   #
   # DROP Index
   #
