@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"log/slog"
 	"math"
@@ -106,8 +105,6 @@ func updateChairLocationDistanceSumInfoByChairId(list []*ChairLocation) {
 			Valid: true,
 		}
 	}
-	slog.Info("----")
-	fmt.Printf("debug: %+v", chairLocationDistanceSumInfo)
 	chairLocationDistanceSumInfoCacheByChairId.Set(strings.ToUpper(chairLocationDistanceSumInfo.ChairID), chairLocationDistanceSumInfo)
 }
 
@@ -142,11 +139,9 @@ func getChairLocationDistanceSumInfoCacheByChairId(chairId string) ChairLocation
 	if chairLocationDistanceSumInfo, ok := chairLocationDistanceSumInfoCacheByChairId.Get(strings.ToUpper(chairId)); ok {
 		return chairLocationDistanceSumInfo
 	} else {
-		slog.Error("----------想定外")
-		panic(chairId)
 		return ChairLocationDistanceSumInfo{
-			ChairID:       "誤り",
-			TotalDistance: -1,
+			ChairID:       chairId,
+			TotalDistance: 0,
 			TotalDistanceUpdatedAt: sql.NullTime{
 				Valid: false,
 			},
