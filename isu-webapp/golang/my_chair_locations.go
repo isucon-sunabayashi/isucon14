@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"log/slog"
 	"math"
@@ -105,6 +106,8 @@ func updateChairLocationDistanceSumInfoByChairId(list []*ChairLocation) {
 			Valid: true,
 		}
 	}
+	slog.Info("----")
+	fmt.Printf("debug: %+v", chairLocationDistanceSumInfo)
 	chairLocationDistanceSumInfoCacheByChairId.Set(strings.ToUpper(chairLocationDistanceSumInfo.ChairID), chairLocationDistanceSumInfo)
 }
 
