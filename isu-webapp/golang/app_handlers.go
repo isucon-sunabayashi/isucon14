@@ -354,7 +354,7 @@ func appPostRides(w http.ResponseWriter, r *http.Request) {
 	}
 	if _, err := tx.ExecContext(
 		ctx,
-		`INSERT INTO ride_statuses (id, ride_id, status, createdAt) VALUES (?, ?, ?, ?)`,
+		`INSERT INTO ride_statuses (id, ride_id, status, created_at) VALUES (?, ?, ?, ?)`,
 		(*rideStatus).ID, rideID, (*rideStatus).Status, (*rideStatus).CreatedAt,
 	); err != nil {
 		writeError(w, http.StatusInternalServerError, err)
@@ -577,7 +577,7 @@ func appPostRideEvaluatation(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = tx.ExecContext(
 		ctx,
-		`INSERT INTO ride_statuses (id, ride_id, status, createdAt) VALUES (?, ?, ?, ?)`,
+		`INSERT INTO ride_statuses (id, ride_id, status, created_at) VALUES (?, ?, ?, ?)`,
 		(*rideStatus).ID, rideID, (*rideStatus).Status, (*rideStatus).CreatedAt,
 	)
 	if err != nil {

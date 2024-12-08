@@ -156,7 +156,7 @@ func chairPostCoordinate(w http.ResponseWriter, r *http.Request) {
 					Status:    "PICKUP",
 					CreatedAt: time.Now(),
 				}
-				if _, err := tx.ExecContext(ctx, "INSERT INTO ride_statuses (id, ride_id, status, createdAt) VALUES (?, ?, ?, ?)",
+				if _, err := tx.ExecContext(ctx, "INSERT INTO ride_statuses (id, ride_id, status, created_at) VALUES (?, ?, ?, ?)",
 					(*rideStatus).ID, ride.ID, (*rideStatus).Status, (*rideStatus).CreatedAt,
 				); err != nil {
 					writeError(w, http.StatusInternalServerError, err)
@@ -172,7 +172,7 @@ func chairPostCoordinate(w http.ResponseWriter, r *http.Request) {
 					Status:    "ARRIVED",
 					CreatedAt: time.Now(),
 				}
-				if _, err := tx.ExecContext(ctx, "INSERT INTO ride_statuses (id, ride_id, status, createdAt) VALUES (?, ?, ?, ?)",
+				if _, err := tx.ExecContext(ctx, "INSERT INTO ride_statuses (id, ride_id, status, created_at) VALUES (?, ?, ?, ?)",
 					(*rideStatus).ID, (*rideStatus).RideID, (*rideStatus).Status, (*rideStatus).CreatedAt,
 				); err != nil {
 					writeError(w, http.StatusInternalServerError, err)
@@ -342,7 +342,7 @@ func chairPostRideStatus(w http.ResponseWriter, r *http.Request) {
 			Status:    "ENROUTE",
 			CreatedAt: time.Now(),
 		}
-		if _, err := tx.ExecContext(ctx, "INSERT INTO ride_statuses (id, ride_id, status, createdAt) VALUES (?, ?, ?, ?)",
+		if _, err := tx.ExecContext(ctx, "INSERT INTO ride_statuses (id, ride_id, status, created_at) VALUES (?, ?, ?, ?)",
 			(*rideStatus).ID, rideID, (*rideStatus).Status, (*rideStatus).CreatedAt,
 		); err != nil {
 			writeError(w, http.StatusInternalServerError, err)
@@ -366,7 +366,7 @@ func chairPostRideStatus(w http.ResponseWriter, r *http.Request) {
 			Status:    "CARRYING",
 			CreatedAt: time.Now(),
 		}
-		if _, err := tx.ExecContext(ctx, "INSERT INTO ride_statuses (id, ride_id, status, createdAt) VALUES (?, ?, ?, ?)",
+		if _, err := tx.ExecContext(ctx, "INSERT INTO ride_statuses (id, ride_id, status, created_at) VALUES (?, ?, ?, ?)",
 			(*rideStatus).ID, rideID, (*rideStatus).Status, (*rideStatus).CreatedAt,
 		); err != nil {
 			writeError(w, http.StatusInternalServerError, err)
