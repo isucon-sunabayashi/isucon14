@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -198,29 +197,30 @@ func ownerGetChairs(w http.ResponseWriter, r *http.Request) {
 	owner := ctx.Value("owner").(*Owner)
 
 	chairs := []chairWithDetail{}
-	tmpChairs := []Chair{}
-	if err := db.SelectContext(ctx, &tmpChairs, `SELECT *
+	if err := db.SelectContext(ctx, &chairs, `SELECT id,
+       owner_id,
+       name,
+       access_token,
+       model,
+       is_active,
+       created_at,
+       updated_at,
+       IFNULL(total_distance, 0) AS total_distance,
+       total_distance_updated_at
 FROM chairs
+       LEFT JOIN (SELECT chair_id,
+                          SUM(IFNULL(distance, 0)) AS total_distance,
+                          MAX(created_at)          AS total_distance_updated_at
+                   FROM (SELECT chair_id,
+                                created_at,
+                                ABS(latitude - LAG(latitude) OVER (PARTITION BY chair_id ORDER BY created_at)) +
+                                ABS(longitude - LAG(longitude) OVER (PARTITION BY chair_id ORDER BY created_at)) AS distance
+                         FROM chair_locations) tmp
+                   GROUP BY chair_id) distance_table ON distance_table.chair_id = chairs.id
 WHERE owner_id = ?
 `, owner.ID); err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return
-	}
-
-	for _, chair := range tmpChairs {
-		sumInfo := getChairLocationDistanceSumInfoCacheByChairId(chair.ID)
-		chairs = append(chairs, chairWithDetail{
-			ID:                     chair.ID,
-			OwnerID:                chair.OwnerID,
-			Name:                   chair.Name,
-			AccessToken:            chair.AccessToken,
-			Model:                  chair.Model,
-			IsActive:               chair.IsActive,
-			CreatedAt:              chair.CreatedAt,
-			UpdatedAt:              chair.UpdatedAt,
-			TotalDistance:          sumInfo.TotalDistance,
-			TotalDistanceUpdatedAt: sumInfo.TotalDistanceUpdatedAt,
-		})
 	}
 
 	res := ownerGetChairResponse{}
@@ -240,8 +240,8 @@ WHERE owner_id = ?
 		res.Chairs = append(res.Chairs, c)
 	}
 
-	fmt.Printf("----------\n")
-	fmt.Printf("debug: %+v\n", res)
-	fmt.Printf("----------\n")
+	// fmt.Printf("----------\n")
+	// fmt.Printf("debug: %+v\n", res)
+	// fmt.Printf("----------\n")
 	writeJSON(w, http.StatusOK, res)
 }
