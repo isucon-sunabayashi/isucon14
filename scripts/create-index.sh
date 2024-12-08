@@ -23,7 +23,7 @@ while read server; do
   #
   # コピペ時: ここから
   index_name='idx_rides_chair_id_updated_at'
-  sql="create index ${index_name} rides(chair_id, updated_at DESC);"
+  sql="create index ${index_name} on rides(chair_id, updated_at DESC);"
   echo "${sql}"
   ssh -n ${server} "sudo mysql ${DB_NAME} -e '${sql}'" || echo "index: ${index_name}は既に有るので問題なし(Duplicate key nameならば)"
   echo ''
